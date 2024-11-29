@@ -2,7 +2,7 @@ from dapr.ext.workflow import DaprWorkflowContext
 from typing import Dict, Any
 import logging
 
-from activities.pizza_activities import order_pizza, cook_pizza, validate_pizza, deliver_pizza
+from pizza_activities import order_pizza, cook_pizza, deliver_pizza
 
 logger = logging.getLogger(__name__)
 
@@ -13,8 +13,8 @@ def pizza_workflow(context: DaprWorkflowContext, order_data: Dict[str, Any]):
         
         # Step 1: Place and process the order
         logger.info(f"Placing order {order_data['order_id']}")
-        order_result = yield context.call_activity(  # Added yield
-            order_pizza,  # Direct function reference
+        order_result = yield context.call_activity(  
+            order_pizza,  
             input=order_data
         )
         
@@ -23,8 +23,8 @@ def pizza_workflow(context: DaprWorkflowContext, order_data: Dict[str, Any]):
         
         # Step 2: Cook the pizza
         logger.info(f"Starting cooking for order {order_data['order_id']}")
-        cooking_result = yield context.call_activity(  # Added yield
-            cook_pizza,  # Direct function reference
+        cooking_result = yield context.call_activity(  
+            cook_pizza,  
             input=order_result
         )
         
@@ -33,15 +33,15 @@ def pizza_workflow(context: DaprWorkflowContext, order_data: Dict[str, Any]):
         
         # Step 3: Wait for manager validation
         logger.info(f"Waiting for manager validation of order {order_data['order_id']}")
-        validation_event = yield context.wait_for_external_event("ValidationComplete")  # Added yield
+        validation_event = yield context.wait_for_external_event("ValidationComplete")  
         
         if not validation_event.get('approved'):
             raise Exception("Pizza validation failed - need to remake")
         
         # Step 4: Deliver the pizza
         logger.info(f"Starting delivery for order {order_data['order_id']}")
-        delivery_result = yield context.call_activity(  # Added yield
-            deliver_pizza,  # Direct function reference
+        delivery_result = yield context.call_activity(  
+            deliver_pizza,  
             input=cooking_result
         )
         

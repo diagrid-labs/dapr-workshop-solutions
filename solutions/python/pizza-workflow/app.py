@@ -3,8 +3,8 @@ from dapr.clients import DaprClient
 from dapr.ext.workflow import WorkflowRuntime
 import logging
 import threading
-from activities.pizza_activities import order_pizza, cook_pizza, validate_pizza, deliver_pizza
-from workflows.pizza_workflow import pizza_workflow
+from pizza_activities import order_pizza, cook_pizza, validate_pizza, deliver_pizza
+from pizza_workflow import pizza_workflow
 
 # Configure logging
 logging.basicConfig(

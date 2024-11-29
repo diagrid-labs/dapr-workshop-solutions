@@ -9,7 +9,7 @@ POST {{baseUrl}}/start-order
 Content-Type: application/json
 
 {
-    "order_id": "1",
+    "order_id": "123",
     "pizza_type": "pepperoni",
     "size": "large",
     "customer": {
@@ -24,7 +24,7 @@ POST {{baseUrl}}/validate-pizza
 Content-Type: application/json
 
 {
-    "order_id": "1",
+    "order_id": "123",
     "approved": true
 }
 

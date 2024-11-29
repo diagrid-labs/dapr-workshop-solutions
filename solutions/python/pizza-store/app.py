@@ -1,4 +1,3 @@
-# pizza-store/app.py
 from flask import Flask, request, jsonify
 from dapr.clients import DaprClient
 import json
@@ -28,13 +27,6 @@ def process_order(order_data):
             for stage, duration in stages:
                 order_data['status'] = stage
                 logger.info(f"Order {order_data['order_id']} - {stage}")
-                
-                # Save state
-                client.save_state(
-                    store_name="pizzastatestore",
-                    key=f"order_{order_data['order_id']}",
-                    value=json.dumps(order_data)
-                )
                 
                 # Publish status update
                 client.publish_event(

@@ -14,3 +14,4 @@ scopes:
 - pizza-store
 - pizza-kitchen
 - pizza-delivery
+- pizza-order
