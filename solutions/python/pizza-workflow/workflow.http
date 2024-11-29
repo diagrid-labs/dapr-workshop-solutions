@@ -1,0 +1,75 @@
+### Variables
+@baseUrl = http://localhost:8004
+@pizzaStoreUrl = http://localhost:8001
+@pizzaKitchenUrl = http://localhost:8002
+@pizzaDeliveryUrl = http://localhost:8003
+
+### Start a new pizza order workflow
+POST {{baseUrl}}/start-order
+Content-Type: application/json
+
+{
+    "order_id": "1",
+    "pizza_type": "pepperoni",
+    "size": "large",
+    "customer": {
+        "name": "John Doe",
+        "address": "123 Main St",
+        "phone": "555-0123"
+    }
+}
+
+### Validate pizza (approve)
+POST {{baseUrl}}/validate-pizza
+Content-Type: application/json
+
+{
+    "order_id": "1",
+    "approved": true
+}
+
+### Validate pizza (reject)
+POST {{baseUrl}}/validate-pizza
+Content-Type: application/json
+
+{
+    "order_id": "123",
+    "approved": false
+}
+
+### Direct Pizza Store Endpoint (for testing)
+POST {{pizzaStoreUrl}}/order
+Content-Type: application/json
+
+{
+    "order_id": "123",
+    "pizza_type": "pepperoni",
+    "size": "large",
+    "customer": {
+        "name": "John Doe",
+        "address": "123 Main St",
+        "phone": "555-0123"
+    }
+}
+
+### Direct Pizza Kitchen Endpoint (for testing)
+POST {{pizzaKitchenUrl}}/cook
+Content-Type: application/json
+
+{
+    "order_id": "123",
+    "pizza_type": "pepperoni",
+    "size": "large",
+    "status": "ordered"
+}
+
+### Direct Pizza Delivery Endpoint (for testing)
+POST {{pizzaDeliveryUrl}}/deliver
+Content-Type: application/json
+
+{
+    "order_id": "123",
+    "pizza_type": "pepperoni",
+    "size": "large",
+    "status": "cooked"
+}

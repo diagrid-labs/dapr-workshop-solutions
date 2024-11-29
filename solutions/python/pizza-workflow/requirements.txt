@@ -6,3 +6,5 @@ cloudevents
 uvicorn
 requests
 typing-extensions
+dapr-ext-workflow
+python-json-logger

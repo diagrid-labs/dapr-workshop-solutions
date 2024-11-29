@@ -1,5 +1,6 @@
 Flask
 dapr
+dapr-ext-grpc
 cloudevents
 uvicorn
 typing-extensions

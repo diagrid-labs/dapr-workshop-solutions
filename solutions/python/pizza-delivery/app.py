@@ -1,64 +1,67 @@
+# pizza-delivery/app.py
 from flask import Flask, request, jsonify
 from dapr.clients import DaprClient
-
 import json
 import time
 import logging
 
 APP_PORT = 8003
 DAPR_PUBSUB_NAME = 'pizzapubsub'
-DAPR_PUBSUB_TOPIC_NAME = 'order'
+DAPR_PUBSUB_TOPIC_NAME = 'orders'
 
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-def deliver(order_data):
-    # Simulate delivery time and events
-    time.sleep(3)
-    order_data['event'] = 'Delivery started'
-    publish_event(order_data)
-
-    time.sleep(3)
-    order_data['event'] = 'Order picked up by driver'
-    publish_event(order_data)
-
-    time.sleep(5)
-    order_data['event'] = 'En-route'
-    publish_event(order_data)
-    
-    time.sleep(5)
-    order_data['event'] = 'Nearby'
-    publish_event(order_data)
-
-    time.sleep(5)
-    order_data['event'] = 'Delivered'
-    publish_event(order_data)
-
-# ------------------- Dapr pub/sub ------------------- #
-
-def publish_event(order_data):
-    with DaprClient() as client:
-        # Publish an event/message using Dapr PubSub
-        result = client.publish_event(
-            pubsub_name=DAPR_PUBSUB_NAME,
-            topic_name=DAPR_PUBSUB_TOPIC_NAME,
-            data=json.dumps(order_data),
-            data_content_type='application/json',
-        )
-
-# ------------------- Application routes ------------------- #
+def deliver_pizza(order_data):
+    """Handle the delivery process and update status"""
+    try:
+        # Simulate delivery stages
+        stages = [
+            ('finding_driver', 2),
+            ('driver_assigned', 1),
+            ('picked_up', 2),
+            ('on_the_way', 5),
+            ('arriving', 2),
+            ('at_location', 1)
+        ]
+        
+        with DaprClient() as client:
+            for stage, duration in stages:
+                order_data['status'] = f'delivery_{stage}'
+                logger.info(f"Order {order_data['order_id']} - {stage}")
+                
+                # Publish status update
+                client.publish_event(
+                    pubsub_name=DAPR_PUBSUB_NAME,
+                    topic_name=DAPR_PUBSUB_TOPIC_NAME,
+                    data=json.dumps(order_data)
+                )
+                
+                time.sleep(duration)
+        
+        order_data['status'] = 'delivered'
+        logger.info(f"Order {order_data['order_id']} - delivery completed")
+        
+        return order_data
+        
+    except Exception as e:
+        logger.error(f"Error delivering pizza: {str(e)}")
+        order_data['status'] = 'delivery_failed'
+        order_data['error'] = str(e)
+        return order_data
 
 @app.route('/deliver', methods=['POST'])
-def startDelivery():
+def start_delivery():
+    """Handle delivery requests"""
     order_data = request.json
-    logging.info('Delivery started: %s', order_data['order_id'])
+    logger.info(f"Starting delivery for order: {order_data['order_id']}")
+    
+    # Deliver the pizza
+    result = deliver_pizza(order_data)
+    
+    return jsonify(result)
 
-    # Start delivery
-    deliver(order_data)
-
-    logging.info('Delivery completed: %s', order_data['order_id'])
-
-    return jsonify({'success': True})
-
-app.run(port=APP_PORT)
+if __name__ == "__main__":
+    app.run(port=APP_PORT)

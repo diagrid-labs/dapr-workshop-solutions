@@ -10,3 +10,7 @@ spec:
     value: localhost:6379
   - name: redisPassword
     value: ""
+scopes:
+- pizza-store
+- pizza-kitchen
+- pizza-delivery
