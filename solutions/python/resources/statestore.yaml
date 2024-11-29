@@ -12,3 +12,6 @@ spec:
     value: ""
   - name: actorStateStore
     value: "true"
+scopes:
+- pizza-order
+- pizza-workflow
