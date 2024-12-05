@@ -1,16 +1,17 @@
 ### Variables
-@baseUrl = http://localhost:8004
-@pizzaStoreUrl = http://localhost:8001
-@pizzaKitchenUrl = http://localhost:8002
-@pizzaDeliveryUrl = http://localhost:8003
+@pizzaOrderUrl = http://localhost:8001
+@pizzaStorefrontUrl = http://localhost:8002
+@pizzaKitchenUrl = http://localhost:8003
+@pizzaDeliveryUrl = http://localhost:8004
+@pizzaWorkflowUrl = http://localhost:8005
 
-### Start a new pizza order workflow
-POST {{baseUrl}}/start-order
+### Direct Pizza Order Endpoint (for testing)
+POST {{pizzaOrderUrl}}/order
 Content-Type: application/json
 
 {
-    "order_id": "123",
-    "pizza_type": "pepperoni",
+    "orderId": "123",
+    "pizzaType": "pepperoni",
     "size": "large",
     "customer": {
         "name": "John Doe",
@@ -19,31 +20,19 @@ Content-Type: application/json
     }
 }
 
-### Validate pizza (approve)
-POST {{baseUrl}}/validate-pizza
-Content-Type: application/json
+### Get order status (from pizza-order service)
+GET {{pizzaOrderUrl}}/order/123
 
-{
-    "order_id": "123",
-    "approved": true
-}
-
-### Validate pizza (reject)
-POST {{baseUrl}}/validate-pizza
-Content-Type: application/json
-
-{
-    "order_id": "123",
-    "approved": false
-}
+### Delete order (from pizza-order service)
+DELETE {{pizzaOrderUrl}}/order/123
 
 ### Direct Pizza Store Endpoint (for testing)
-POST {{pizzaStoreUrl}}/order
+POST {{pizzaStorefrontUrl}}/storefront/order
 Content-Type: application/json
 
 {
-    "order_id": "123",
-    "pizza_type": "pepperoni",
+    "orderId": "123",
+    "pizzaType": "pepperoni",
     "size": "large",
     "customer": {
         "name": "John Doe",
@@ -53,23 +42,81 @@ Content-Type: application/json
 }
 
 ### Direct Pizza Kitchen Endpoint (for testing)
-POST {{pizzaKitchenUrl}}/cook
+POST {{pizzaKitchenUrl}}/cooking
 Content-Type: application/json
 
 {
-    "order_id": "123",
-    "pizza_type": "pepperoni",
+    "orderId": "123",
+    "pizzaType": "pepperoni",
     "size": "large",
     "status": "ordered"
 }
 
 ### Direct Pizza Delivery Endpoint (for testing)
-POST {{pizzaDeliveryUrl}}/deliver
+POST {{pizzaDeliveryUrl}}/delivery
 Content-Type: application/json
 
 {
-    "order_id": "123",
-    "pizza_type": "pepperoni",
+    "orderId": "123",
+    "pizzaType": "pepperoni",
     "size": "large",
     "status": "cooked"
+}
+
+### Start a new pizza order workflow
+POST {{pizzaWorkflowUrl}}/workflow/start-order
+Content-Type: application/json
+
+{
+    "orderId": "1",
+    "pizzaType": "pepperoni",
+    "size": "large",
+    "customer": {
+        "name": "John Doe",
+        "address": "123 Main St",
+        "phone": "555-0123"
+    }
+}
+
+@wfrequest = {}
+
+// @name wfrequest
+@workflow_dapr_url = http://localhost:3504
+
+### Start workflow endpoint using Dapr API
+
+POST {{workflow_dapr_url}}/v1.0-beta1/workflows/dapr/PizzaOrderingWorkflow/start?instanceID=pizza-order-1
+Content-Type: application/json
+
+{
+    "orderId": "1",
+    "pizzaType": "pepperoni",
+    "size": "large",
+    "customer": {
+        "name": "John Doe",
+        "address": "123 Main St",
+        "phone": "555-0123"
+    }
+}
+
+### Get workflow status
+@wfrequest_instanceID={{wfrequest.response.body.instanceID}}
+GET {{workflow_dapr_url}}/v1.0-beta1/workflows/dapr/pizza-order-1
+
+### Validate pizza (approve)
+POST {{pizzaWorkflowUrl}}/workflow/validate-pizza
+Content-Type: application/json
+
+{
+    "orderId": "1",
+    "approved": true
+}
+
+### Validate pizza (reject)
+POST {{pizzaWorkflowUrl}}/workflow/validate-pizza
+Content-Type: application/json
+
+{
+    "orderId": "1",
+    "approved": false
 }
