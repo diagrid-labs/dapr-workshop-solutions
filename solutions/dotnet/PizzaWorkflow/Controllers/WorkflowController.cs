@@ -26,7 +26,8 @@ public class WorkflowController : ControllerBase
         try
         {
             _logger.LogInformation("Starting workflow for order {OrderId}", order.OrderId);
-
+            
+            // Start workflow
             await _daprClient.StartWorkflowAsync(
                 workflowComponent: "dapr",
                 workflowName: nameof(PizzaOrderingWorkflow),
@@ -59,6 +60,7 @@ public class WorkflowController : ControllerBase
             _logger.LogInformation("Raising validation event for order {OrderId}. Approved: {Approved}", 
                 validation.OrderId, validation.Approved);
 
+            // Send external event to workflow
             await _daprClient.RaiseWorkflowEventAsync(
                 instanceId: instanceId,
                 workflowComponent: "dapr",
@@ -80,4 +82,121 @@ public class WorkflowController : ControllerBase
             throw;
         }
     }
+
+    [HttpPost("get-status")]
+    public async Task<IActionResult> GetOrderStatus(ManageWorkflowRequest request)
+    {
+        var instanceId = $"pizza-order-{request.OrderId}";
+        
+        try
+        {
+            _logger.LogInformation("Getting workflow status for order {OrderId}", request.OrderId);
+
+            // Get workflow status
+            var status = await _daprClient.GetWorkflowAsync(
+                instanceId: instanceId,
+                workflowComponent: "dapr");
+
+            _logger.LogInformation("Workflow status retrieved successfully for order {OrderId}", request.OrderId);
+
+            return Ok(new
+            {
+                order_id = request.OrderId,
+                status
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get workflow status for order {OrderId}", request.OrderId);
+            throw;
+        }
+    }
+
+    [HttpPost("pause-order")]
+    public async Task<IActionResult> PauseOrder(ManageWorkflowRequest request)
+    {
+        var instanceId = $"pizza-order-{request.OrderId}";
+        
+        try
+        {
+            _logger.LogInformation("Pausing workflow for order {OrderId}", request.OrderId);
+
+            // Pause workflow
+            await _daprClient.PauseWorkflowAsync(
+                instanceId: instanceId,
+                workflowComponent: "dapr");
+
+            _logger.LogInformation("Workflow paused successfully for order {OrderId}", request.OrderId);
+
+            return Ok(new
+            {
+                order_id = request.OrderId,
+                status = "paused"
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to pause workflow for order {OrderId}", request.OrderId);
+            throw;
+        }
+    }
+
+    [HttpPost("resume-order")]
+    public async Task<IActionResult> ResumeOrder(ManageWorkflowRequest request)
+    {
+        var instanceId = $"pizza-order-{request.OrderId}";
+        
+        try
+        {
+            _logger.LogInformation("Resuming workflow for order {OrderId}", request.OrderId);
+
+            // Resume workflow
+            await _daprClient.ResumeWorkflowAsync(
+                instanceId: instanceId,
+                workflowComponent: "dapr");
+
+            _logger.LogInformation("Workflow resumed successfully for order {OrderId}", request.OrderId);
+
+            return Ok(new
+            {
+                order_id = request.OrderId,
+                status = "resumed"
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to resume workflow for order {OrderId}", request.OrderId);
+            throw;
+        }
+    }
+
+    [HttpPost("cancel-order")]
+    public async Task<IActionResult> CancelOrder( ManageWorkflowRequest request)
+    {
+        var instanceId = $"pizza-order-{request.OrderId}";
+        
+        try
+        {
+            _logger.LogInformation("Cancelling workflow for order {OrderId}", request.OrderId);
+
+            // Cancel workflow
+            await _daprClient.TerminateWorkflowAsync(
+                instanceId: instanceId,
+                workflowComponent: "dapr");
+
+            _logger.LogInformation("Workflow cancelled successfully for order {OrderId}", request.OrderId);
+
+            return Ok(new
+            {
+                order_id = request.OrderId,
+                status = "terminated"
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to cancel workflow for order {OrderId}", request.OrderId);
+            throw;
+        }
+    }
+
 }

@@ -13,7 +13,7 @@ public class PizzaOrderingWorkflow : Workflow<Order, Order>
         {
             // Step 1: Place and process the order
             var orderResult = await context.CallActivityAsync<Order>(
-                nameof(OrderActivity),
+                nameof(StorefrontActivity),
                 order);
 
             if (orderResult.Status != "confirmed")

@@ -16,7 +16,7 @@ builder.Services.AddDaprWorkflow(options =>
     options.RegisterWorkflow<PizzaOrderingWorkflow>();
 
     // Register activities
-    options.RegisterActivity<OrderActivity>();
+    options.RegisterActivity<StorefrontActivity>();
     options.RegisterActivity<CookingActivity>();
     options.RegisterActivity<ValidationActivity>();
     options.RegisterActivity<DeliveryActivity>();

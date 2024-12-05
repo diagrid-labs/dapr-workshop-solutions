@@ -4,12 +4,12 @@ using PizzaWorkflow.Models;
 
 namespace PizzaWorkflow.Activities;
 
-public class OrderActivity : WorkflowActivity<Order, Order>
+public class StorefrontActivity : WorkflowActivity<Order, Order>
 {
     private readonly DaprClient _daprClient;
-    private readonly ILogger<OrderActivity> _logger;
+    private readonly ILogger<StorefrontActivity> _logger;
 
-    public OrderActivity(DaprClient daprClient, ILogger<OrderActivity> logger)
+    public StorefrontActivity(DaprClient daprClient, ILogger<StorefrontActivity> logger)
     {
         _daprClient = daprClient;
         _logger = logger;
@@ -23,8 +23,8 @@ public class OrderActivity : WorkflowActivity<Order, Order>
             
             var response = await _daprClient.InvokeMethodAsync<Order, Order>(
                 HttpMethod.Post,
-                "pizza-store",
-                "order",
+                "pizza-storefront",
+                "/storefront/order",
                 order);
 
             _logger.LogInformation("Order {OrderId} processed with status {Status}", 

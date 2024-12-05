@@ -24,7 +24,7 @@ public class CookingActivity : WorkflowActivity<Order, Order>
             var response = await _daprClient.InvokeMethodAsync<Order, Order>(
                 HttpMethod.Post,
                 "pizza-kitchen",
-                "cooking",
+                "cook",
                 order);
 
             _logger.LogInformation("Order {OrderId} cooked with status {Status}", 
