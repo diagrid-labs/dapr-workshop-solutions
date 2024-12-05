@@ -4,6 +4,7 @@ import json
 import logging
 
 APP_PORT = 8001
+DAPR_STORE_NAME = 'pizzastatestore'
 DAPR_PUBSUB_NAME = 'pizzapubsub'
 DAPR_PUBSUB_TOPIC_NAME = 'orders'
 
@@ -30,7 +31,7 @@ def orders_subscription():
             state_key = f"order_{order_id}"
             try:
                 state = client.get_state(
-                    store_name="pizzastatestore",
+                    store_name=DAPR_STORE_NAME,
                     key=state_key
                 )
                 existing_order = json.loads(state.data) if state.data else {}
@@ -42,7 +43,7 @@ def orders_subscription():
             
             # Save updated state
             client.save_state(
-                store_name="pizzastatestore",
+                store_name=DAPR_STORE_NAME,
                 key=state_key,
                 value=json.dumps(updated_order)
             )
@@ -65,7 +66,7 @@ def create_order():
         # Save order state
         with DaprClient() as client:
             client.save_state(
-                store_name="pizzastatestore",
+                store_name=DAPR_STORE_NAME,
                 key=f"order_{order_id}",
                 value=json.dumps(order_data)
             )
@@ -84,7 +85,7 @@ def get_order(order_id):
     try:
         with DaprClient() as client:
             state = client.get_state(
-                store_name="pizzastatestore",
+                store_name=DAPR_STORE_NAME,
                 key=f"order_{order_id}"
             )
             
@@ -104,7 +105,7 @@ def delete_order(order_id):
     try:
         with DaprClient() as client:
             client.delete_state(
-                store_name="pizzastatestore",
+                store_name=DAPR_STORE_NAME,
                 key=f"order_{order_id}"
             )
             
