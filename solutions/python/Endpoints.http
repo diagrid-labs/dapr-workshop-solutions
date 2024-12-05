@@ -10,8 +10,8 @@ POST {{pizzaOrderUrl}}/order
 Content-Type: application/json
 
 {
-    "orderId": "123",
-    "pizzaType": "pepperoni",
+    "order_id": "123",
+    "pizza_type": "pepperoni",
     "size": "large",
     "customer": {
         "name": "John Doe",
@@ -27,49 +27,27 @@ GET {{pizzaOrderUrl}}/order/123
 DELETE {{pizzaOrderUrl}}/order/123
 
 ### Direct Pizza Store Endpoint (for testing)
-POST {{pizzaStorefrontUrl}}/storefront/order
+POST {{pizzaStorefrontUrl}}/order
 Content-Type: application/json
 
 {
-    "orderId": "123",
-    "pizzaType": "pepperoni",
+    "order_id": "123",
+    "pizza_type": "pepperoni",
     "size": "large",
     "customer": {
         "name": "John Doe",
         "address": "123 Main St",
         "phone": "555-0123"
     }
-}
-
-### Direct Pizza Kitchen Endpoint (for testing)
-POST {{pizzaKitchenUrl}}/cooking
-Content-Type: application/json
-
-{
-    "orderId": "123",
-    "pizzaType": "pepperoni",
-    "size": "large",
-    "status": "ordered"
-}
-
-### Direct Pizza Delivery Endpoint (for testing)
-POST {{pizzaDeliveryUrl}}/delivery
-Content-Type: application/json
-
-{
-    "orderId": "123",
-    "pizzaType": "pepperoni",
-    "size": "large",
-    "status": "cooked"
 }
 
 ### Start a new pizza order workflow
-POST {{pizzaWorkflowUrl}}/workflow/start-order
+POST {{pizzaWorkflowUrl}}/start-order
 Content-Type: application/json
 
 {
-    "orderId": "1",
-    "pizzaType": "pepperoni",
+    "order_id": "123",
+    "pizza_type": "pepperoni",
     "size": "large",
     "customer": {
         "name": "John Doe",
@@ -77,46 +55,49 @@ Content-Type: application/json
         "phone": "555-0123"
     }
 }
-
-@wfrequest = {}
-
-// @name wfrequest
-@workflow_dapr_url = http://localhost:3504
-
-### Start workflow endpoint using Dapr API
-
-POST {{workflow_dapr_url}}/v1.0-beta1/workflows/dapr/PizzaOrderingWorkflow/start?instanceID=pizza-order-1
-Content-Type: application/json
-
-{
-    "orderId": "1",
-    "pizzaType": "pepperoni",
-    "size": "large",
-    "customer": {
-        "name": "John Doe",
-        "address": "123 Main St",
-        "phone": "555-0123"
-    }
-}
-
-### Get workflow status
-@wfrequest_instanceID={{wfrequest.response.body.instanceID}}
-GET {{workflow_dapr_url}}/v1.0-beta1/workflows/dapr/pizza-order-1
 
 ### Validate pizza (approve)
-POST {{pizzaWorkflowUrl}}/workflow/validate-pizza
+POST {{pizzaWorkflowUrl}}/validate-pizza
 Content-Type: application/json
 
 {
-    "orderId": "1",
+    "order_id": "123",
     "approved": true
 }
 
 ### Validate pizza (reject)
-POST {{pizzaWorkflowUrl}}/workflow/validate-pizza
+POST {{pizzaWorkflowUrl}}/validate-pizza
 Content-Type: application/json
 
 {
-    "orderId": "1",
+    "order_id": "123",
     "approved": false
+}
+
+### Get workflow status
+GET {{pizzaWorkflowUrl}}/get-status/123
+Content-Type: application/json
+
+### Pause workflow 
+POST {{pizzaWorkflowUrl}}/pause-order
+Content-Type: application/json
+
+{
+    "order_id": "123"
+}
+
+### Resume workflow 
+POST {{pizzaWorkflowUrl}}/resume-order
+Content-Type: application/json
+
+{
+    "order_id": "123"
+}
+
+### Terminate workflow 
+POST {{pizzaWorkflowUrl}}/cancel-order
+Content-Type: application/json
+
+{
+    "order_id": "123"
 }

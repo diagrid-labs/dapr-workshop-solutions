@@ -7,11 +7,11 @@ from typing import Dict, Any
 logger = logging.getLogger(__name__)
 
 def order_pizza(ctx: WorkflowActivityContext, input_: Dict[str, Any]) -> Dict[str, Any]:
-    """Activity to place pizza order via pizza-store service"""
-    logger.info(f"Calling pizza-store service for order {input_['order_id']}")
+    """Activity to place pizza order via pizza-storefront service"""
+    logger.info(f"Calling pizza-storefront service for order {input_['order_id']}")
     with DaprClient() as client:
         response = client.invoke_method(
-            'pizza-store',
+            'pizza-storefront',
             'order',
             data=json.dumps(input_),
             http_verb='POST'

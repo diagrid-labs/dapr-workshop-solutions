@@ -4,7 +4,7 @@ import json
 import time
 import logging
 
-APP_PORT = 8001
+APP_PORT = 8002
 DAPR_PUBSUB_NAME = 'pizzapubsub'
 DAPR_PUBSUB_TOPIC_NAME = 'orders'
 

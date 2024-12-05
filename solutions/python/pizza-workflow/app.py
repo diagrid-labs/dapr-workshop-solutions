@@ -13,6 +13,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+APP_PORT = 8005
 app = Flask(__name__)
 
 # API endpoints
@@ -53,6 +54,72 @@ def validate_pizza_endpoint():
         "validation_status": "approved" if validation_data.get("approved") else "rejected"
     })
 
+@app.route('/get-status/<order_id>', methods=['GET'])
+def get_order(order_id):
+    instance_id = f"pizza-order-{order_id}"
+    
+    with DaprClient() as client:
+        result = client.get_workflow(
+            workflow_component="dapr",
+            instance_id=instance_id
+        )
+    
+    logger.info(result.runtime_status)
+
+
+    return jsonify(result.runtime_status)
+
+@app.route('/pause-order', methods=['POST'])
+def pause_order():
+    order_data = request.json
+    order_id = order_data["order_id"]
+    instance_id = f"pizza-order-{order_id}"
+    
+    with DaprClient() as client:
+        client.pause_workflow(
+            workflow_component="dapr",
+            instance_id=instance_id
+        )
+    
+    return jsonify({
+        "order_id": order_id,
+        "status": "paused"
+    })
+
+@app.route('/resume-order', methods=['POST'])
+def resume_order():
+    order_data = request.json
+    order_id = order_data["order_id"]
+    instance_id = f"pizza-order-{order_id}"
+    
+    with DaprClient() as client:
+        client.resume_workflow(
+            workflow_component="dapr",
+            instance_id=instance_id
+        )
+    
+    return jsonify({
+        "order_id": order_id,
+        "status": "resumed"
+    })
+
+@app.route('/cancel-order', methods=['POST'])
+def cancel_order():
+    order_data = request.json
+    order_id = order_data["order_id"]
+    instance_id = f"pizza-order-{order_id}"
+    
+    with DaprClient() as client:
+        client.terminate_workflow(
+            workflow_component="dapr",
+            instance_id=instance_id
+        )
+    
+    return jsonify({
+        "order_id": order_id,
+        "status": "cancelled"
+    })
+
 def run_workflow_runtime():
     logger.info("Initializing workflow runtime")
     workflow_runtime = WorkflowRuntime()
@@ -73,4 +140,4 @@ if __name__ == "__main__":
     workflow_thread.start()
     
     logger.info("Starting Flask application")
-    app.run(host='0.0.0.0', port=8004)
+    app.run(host='0.0.0.0', port=APP_PORT)

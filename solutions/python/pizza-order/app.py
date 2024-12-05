@@ -3,7 +3,7 @@ from dapr.clients import DaprClient
 import json
 import logging
 
-APP_PORT = 8005
+APP_PORT = 8001
 DAPR_PUBSUB_NAME = 'pizzapubsub'
 DAPR_PUBSUB_TOPIC_NAME = 'orders'
 
@@ -55,6 +55,29 @@ def orders_subscription():
         logger.error(f"Error processing order update: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/order', methods=['POST'])
+def create_order():
+    """Create a new order"""
+    order_data = request.json
+    order_id = order_data['order_id']
+    
+    try:
+        # Save order state
+        with DaprClient() as client:
+            client.save_state(
+                store_name="pizzastatestore",
+                key=f"order_{order_id}",
+                value=json.dumps(order_data)
+            )
+            
+            logger.info(f"Created order {order_id}")
+        
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        logger.error(f"Error creating order {order_id}: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/order/<order_id>', methods=['GET'])
 def get_order(order_id):
     """Get order details from state store"""
@@ -73,6 +96,22 @@ def get_order(order_id):
             
     except Exception as e:
         logger.error(f"Error getting order {order_id}: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/order/<order_id>', methods=['DELETE'])
+def delete_order(order_id):
+    """Delete order details from state store"""
+    try:
+        with DaprClient() as client:
+            client.delete_state(
+                store_name="pizzastatestore",
+                key=f"order_{order_id}"
+            )
+            
+            return jsonify({'success': True})
+            
+    except Exception as e:
+        logger.error(f"Error deleting order {order_id}: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 if __name__ == "__main__":
