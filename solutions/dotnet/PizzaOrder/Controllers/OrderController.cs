@@ -17,14 +17,12 @@ public class OrderController : ControllerBase
         _logger = logger;
     }
 
-    [HttpPost("/orders-sub")]
-    public async Task<IActionResult> HandleOrderUpdate(CloudEvent<Order> cloudEvent)
+    [HttpPost]
+    public async Task<ActionResult<Order>> CreateOrder(Order order)
     {
-        _logger.LogInformation("Received order update for order {OrderId}", 
-            cloudEvent.Data.OrderId);
-
-        var result = await _orderStateService.UpdateOrderStateAsync(cloudEvent.Data);
-        return Ok();
+        _logger.LogInformation("Received new order: {OrderId}", order.OrderId);
+        var result = await _orderStateService.UpdateOrderStateAsync(order);
+        return Ok(result);
     }
 
     [HttpGet("{orderId}")]
@@ -38,5 +36,30 @@ public class OrderController : ControllerBase
         }
 
         return Ok(order);
+    }
+
+    
+    [HttpDelete("{orderId}")]
+    public async Task<ActionResult<string>> DeleteOrder(string orderId)
+    {
+        var order = await _orderStateService.GetOrderAsync(orderId);
+        
+        if (order == null)
+        {
+            return NotFound();
+        }
+
+        await _orderStateService.DeleteOrderAsync(orderId);
+        return Ok(orderId);
+    }
+
+    [HttpPost("/orders-sub")]
+    public async Task<IActionResult> HandleOrderUpdate(CloudEvent<Order> cloudEvent)
+    {
+        _logger.LogInformation("Received order update for order {OrderId}", 
+            cloudEvent.Data.OrderId);
+
+        var result = await _orderStateService.UpdateOrderStateAsync(cloudEvent.Data);
+        return Ok();
     }
 }

@@ -1,6 +1,6 @@
-using Dapr.Client;
 using PizzaOrder.Models;
 using System.Text.Json;
+using Dapr.Client;
 
 namespace PizzaOrder.Services;
 
@@ -8,13 +8,14 @@ public interface IOrderStateService
 {
     Task<Order> UpdateOrderStateAsync(Order order);
     Task<Order?> GetOrderAsync(string orderId);
+    Task<string?> DeleteOrderAsync(string orderId);
 }
 
 public class OrderStateService : IOrderStateService
 {
-    private readonly DaprClient _daprClient;
     private readonly ILogger<OrderStateService> _logger;
-    private const string STORE_NAME = "pizzastatestore";
+    private readonly DaprClient _daprClient;
+    private readonly string STORE_NAME = "pizzastatestore";
 
     public OrderStateService(DaprClient daprClient, ILogger<OrderStateService> logger)
     {
@@ -49,28 +50,46 @@ public class OrderStateService : IOrderStateService
             throw;
         }
     }
-
-    public async Task<Order?> GetOrderAsync(string orderId)
-    {
-        try
+public async Task<Order?> GetOrderAsync(string orderId)
+{
+    try
+    {   
+        // Get order from state store by order ID
+        var stateKey = $"order_{orderId}";
+        var order = await _daprClient.GetStateAsync<Order>(STORE_NAME, stateKey);
+        
+        if (order == null)
         {
-            var stateKey = $"order_{orderId}";
-            var order = await _daprClient.GetStateAsync<Order>(STORE_NAME, stateKey);
-            
-            if (order == null)
-            {
-                _logger.LogWarning("Order {OrderId} not found", orderId);
-                return null;
-            }
+            _logger.LogWarning("Order {OrderId} not found", orderId);
+            return null;
+        }
 
-            return order;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving order {OrderId}", orderId);
-            throw;
-        }
+        return order;
     }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error retrieving order {OrderId}", orderId);
+        throw;
+    }
+}
+
+    public async Task<string?> DeleteOrderAsync(string orderId)
+{
+    try
+    {
+        var stateKey = $"order_{orderId}";
+
+        // Tries to delete the order from the state store
+        await _daprClient.DeleteStateAsync(STORE_NAME, stateKey);
+        _logger.LogInformation("Deleted state for order {OrderId}", orderId);
+        return orderId;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error deleting order {OrderId}", orderId);
+        throw;
+    }
+}
 
     private Order MergeOrderStates(Order existing, Order update)
     {

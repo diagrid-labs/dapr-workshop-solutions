@@ -6,14 +6,14 @@ namespace PizzaKitchen.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class CookingController : ControllerBase
+public class CookController : ControllerBase
 {
-    private readonly ICookingService _cookingService;
-    private readonly ILogger<CookingController> _logger;
+    private readonly ICookService _cookService;
+    private readonly ILogger<CookController> _logger;
 
-    public CookingController(ICookingService cookingService, ILogger<CookingController> logger)
+    public CookController(ICookService cookService, ILogger<CookController> logger)
     {
-        _cookingService = cookingService;
+        _cookService = cookService;
         _logger = logger;
     }
 
@@ -21,7 +21,7 @@ public class CookingController : ControllerBase
     public async Task<ActionResult<Order>> Cook(Order order)
     {
         _logger.LogInformation("Starting cooking for order: {OrderId}", order.OrderId);
-        var result = await _cookingService.CookPizzaAsync(order);
+        var result = await _cookService.CookPizzaAsync(order);
         return Ok(result);
     }
 }
