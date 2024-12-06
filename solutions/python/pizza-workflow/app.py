@@ -1,10 +1,11 @@
 from flask import Flask, request, jsonify
 from dapr.clients import DaprClient
 from dapr.ext.workflow import WorkflowRuntime
-import logging
-import threading
 from pizza_activities import order_pizza, cook_pizza, validate_pizza, deliver_pizza
 from pizza_workflow import pizza_workflow
+
+import logging
+import threading
 
 # Configure logging
 logging.basicConfig(
@@ -37,7 +38,7 @@ def start_order():
     })
 
 @app.route('/validate-pizza', methods=['POST'])
-def validate_pizza_endpoint():
+def validate_pizza():
     validation_data = request.json
     order_id = validation_data["order_id"]
     
@@ -65,7 +66,6 @@ def get_order(order_id):
         )
     
     logger.info(result.runtime_status)
-
 
     return jsonify(result.runtime_status)
 
@@ -141,3 +141,5 @@ if __name__ == "__main__":
     
     logger.info("Starting Flask application")
     app.run(host='0.0.0.0', port=APP_PORT)
+
+
